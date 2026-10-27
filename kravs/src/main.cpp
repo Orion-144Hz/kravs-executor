@@ -11,17 +11,17 @@
 
 int main() {
     std::cout << "========================================\n";
-    std::cout << "    KRAVS ROBLOX EXECUTOR COMMIT 1b     \n";
+    std::cout << "    KRAVS ROBLOX EXECUTOR COMMIT 1c     \n";
     std::cout << "    [+]Meezo Tsardom[-]                 \n";
     std::cout << "========================================\n\n";
 
     // Phase 1: Loading (S1)
     Kravs::Loader loader;
-    if (!loader.verifyFile("CMakeLists.txt")) {
+    if (!loader.verifyFile("CMakeLists.txt", Kravs::FileFormat::TEXT_SCRIPT)) {
         std::cerr << "[FATAL ERROR [Code 404]] Stage S1 (Loader::verifyFile) failed.\n";
         return EXIT_FAILURE;
     }
-    if (!loader.checkPrivileges("0.600.0")) {
+    if (!loader.checkPrivileges("1.2.3")) {
         std::cerr << "[FATAL ERROR [Code 401]] Stage S1 (Loader::checkPrivileges) failed.\n";
         return EXIT_FAILURE;
     }
@@ -110,7 +110,7 @@ int main() {
 
     // Phase 6: Scheduler (S6)
     Kravs::Scheduler scheduler;
-    if (!scheduler.ingestScript("print('Kravs Executor Commit 1b dynamic pipeline active! 😎')")) {
+    if (!scheduler.ingestScript("print('Kravs Executor Commit 1c dynamic pipeline active! 😎')")) {
         std::cerr << "[FATAL ERROR [Code 901]] Stage S6 (Scheduler::ingestScript) failed.\n";
         return EXIT_FAILURE;
     }
@@ -166,6 +166,6 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    std::cout << "\n[+] Kravs Commit 1b pipeline execution completed successfully! S9 closing RAII cleanup initiated...\n";
+    std::cout << "\n[+] Kravs Commit 1c pipeline execution completed successfully! S9 closing RAII cleanup initiated...\n";
     return EXIT_SUCCESS;
 }

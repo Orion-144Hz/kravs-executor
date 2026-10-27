@@ -29,10 +29,9 @@ bool Injector::attachProcess(uint32_t processId) {
     }
 #else
     #ifdef KRAVS_TEST_STUB
-    // Test stub strictly permitted under KRAVS_TEST_STUB macro for chroot / test compilation
     processHandle_ = reinterpret_cast<void*>(static_cast<uintptr_t>(0x7000 + processId));
     #else
-    #error "Production compilation requires Windows target with real Win32 APIs (_WIN32). KRAVS_TEST_STUB is required for non-Windows test builds."
+    #error "Production compilation requires Windows target with real Win32 APIs (_WIN32)."
     #endif
 #endif
 
@@ -53,10 +52,12 @@ bool Injector::allocateAndWriteMemory(const uint8_t* data, size_t size, void*& a
         std::cerr << "[S2 ERROR [Code 505]] Cannot allocate memory: process handle is null.\n";
         return false;
     }
+#ifdef KRAVS_TEST_STUB
     if (simulateWriteFailure_) {
         std::cerr << "[S2 ERROR [Code 506]] Simulated WriteProcessMemory failure requested.\n";
         return false;
     }
+#endif
 
     std::cout << "[S2] Allocating remote memory and writing payload (" << size << " bytes)...\n";
     
@@ -132,9 +133,11 @@ bool Injector::cleanup() {
     return true;
 }
 
+#ifdef KRAVS_TEST_STUB
 void Injector::setSimulateWriteFailure(bool simulate) {
     simulateWriteFailure_ = simulate;
 }
+#endif
 
 void* Injector::getProcessHandle() const {
     return processHandle_;

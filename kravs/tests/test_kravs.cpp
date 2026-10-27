@@ -19,16 +19,18 @@
     } while (false)
 
 void testLoader() {
-    std::cout << "[Test] Running Loader positive & negative tests...\n";
+    std::cout << "[Test] Running Loader positive & negative tests (SemVer & Magic Headers)...\n";
     Kravs::Loader loader;
-    KRAVS_TEST_ASSERT(loader.verifyFile("CMakeLists.txt") == true, "Valid file verification failed");
-    KRAVS_TEST_ASSERT(loader.checkPrivileges("0.600.0") == true, "Valid semantic version check failed");
+    KRAVS_TEST_ASSERT(loader.verifyFile("CMakeLists.txt", Kravs::FileFormat::TEXT_SCRIPT) == true, "Valid text file verification failed");
+    KRAVS_TEST_ASSERT(loader.checkPrivileges("1.2.3") == true, "Valid SemVer check failed");
     KRAVS_TEST_ASSERT(loader.prepareBuffer(1024) == true, "Buffer preparation failed");
     KRAVS_TEST_ASSERT(loader.getBuffer().size() == 1024, "Buffer size mismatch");
 
     // Negative tests for S1 Loader
-    KRAVS_TEST_ASSERT(loader.verifyFile("non_existent_file_12345.dll") == false, "Negative test: non-existent file should fail [Code 404]");
-    KRAVS_TEST_ASSERT(loader.checkPrivileges("invalid_version") == false, "Negative test: invalid version format should fail [Code 401]");
+    KRAVS_TEST_ASSERT(loader.verifyFile("non_existent_file_12345.dll", Kravs::FileFormat::PE_BINARY) == false, "Negative test: non-existent file should fail [Code 404]");
+    KRAVS_TEST_ASSERT(loader.checkPrivileges("1.2") == false, "Negative test: incomplete SemVer should fail [Code 412]");
+    KRAVS_TEST_ASSERT(loader.checkPrivileges("1.2.3.4") == false, "Negative test: over-complete SemVer should fail [Code 412]");
+    KRAVS_TEST_ASSERT(loader.checkPrivileges("invalid_version") == false, "Negative test: invalid version should fail [Code 401]");
     std::cout << "[Test] Loader tests passed! ✅\n";
 }
 
@@ -59,18 +61,20 @@ void testInjector() {
     void* zeroAddr = nullptr;
     KRAVS_TEST_ASSERT(negInjector3.allocateAndWriteMemory(data, 0, zeroAddr) == false, "Negative test: 0-byte size allocation must be rejected [Code 504]");
 
+#ifdef KRAVS_TEST_STUB
     // Negative test 4: Simulated WriteProcessMemory failure
     Kravs::Injector negInjector4;
     negInjector4.attachProcess(1337);
     negInjector4.setSimulateWriteFailure(true);
     void* failAddr = nullptr;
     KRAVS_TEST_ASSERT(negInjector4.allocateAndWriteMemory(data, sizeof(data), failAddr) == false, "Negative test: simulated write failure must return false [Code 506]");
+#endif
 
     std::cout << "[Test] Injector tests passed! ✅\n";
 }
 
 void testHook() {
-    std::cout << "[Test] Running HookManager tests (with real table & detach/unhide)...\n";
+    std::cout << "[Test] Running HookManager tests (with real table & detach state flag)...\n";
     Kravs::HookManager hook;
     KRAVS_TEST_ASSERT(hook.installLuauHooks() == true, "Install Luau hooks failed");
     KRAVS_TEST_ASSERT(hook.captureThreadCalls() == true, "Capture thread calls failed");
@@ -78,7 +82,8 @@ void testHook() {
     KRAVS_TEST_ASSERT(hook.hideMemoryModifications() == true, "Hide memory modifications failed");
     KRAVS_TEST_ASSERT(hook.isStealthActive() == true, "Stealth flag should be active");
     KRAVS_TEST_ASSERT(hook.unhide() == true, "Unhide failed");
-    KRAVS_TEST_ASSERT(hook.detach() == true, "Detach failed");
+    KRAVS_TEST_ASSERT(hook.detach() == true, "First detach should succeed");
+    KRAVS_TEST_ASSERT(hook.detach() == false, "Second detach call must return false (already detached)");
     KRAVS_TEST_ASSERT(hook.unhook() == true, "Unhook cleanup failed");
     std::cout << "[Test] Hook tests passed! ✅\n";
 }
@@ -172,7 +177,7 @@ void testUI() {
 
 int main(int argc, char* argv[]) {
     std::cout << "========================================\n";
-    std::cout << "    KRAVS EXECUTOR COMMIT 1b TEST SUITE \n";
+    std::cout << "    KRAVS EXECUTOR COMMIT 1c TEST SUITE \n";
     std::cout << "    [+]Meezo Tsardom[-]                 \n";
     std::cout << "========================================\n\n";
 
@@ -201,6 +206,6 @@ int main(int argc, char* argv[]) {
         testUI();
     }
 
-    std::cout << "\n[+] All Commit 1b unit and negative tests passed successfully! 🚀😎\n";
+    std::cout << "\n[+] All Commit 1c unit and negative tests passed successfully! 🚀😎\n";
     return 0;
 }

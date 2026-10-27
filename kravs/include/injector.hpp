@@ -19,8 +19,10 @@ public:
     void* getProcessHandle() const;
     uint32_t getTargetProcessId() const;
 
-    // Test hook for simulating write failure in negative testing
+#ifdef KRAVS_TEST_STUB
+    // Test hook strictly under KRAVS_TEST_STUB
     void setSimulateWriteFailure(bool simulate);
+#endif
 
 private:
     uint32_t targetProcessId_;

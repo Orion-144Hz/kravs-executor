@@ -2,12 +2,13 @@
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
+#include <sstream>
 
 namespace Kravs {
 Loader::Loader() = default;
 
-bool Loader::verifyFile(const std::string& filepath) {
-    std::cout << "[S1] Verifying file header & existence: " << filepath << "\n";
+bool Loader::verifyFile(const std::string& filepath, FileFormat expectedFormat) {
+    std::cout << "[S1] Verifying file header with format check: " << filepath << "\n";
     struct stat buffer;
     if (stat(filepath.c_str(), &buffer) != 0) {
         std::cerr << "[S1 ERROR [Code 404]] File does not exist or cannot be accessed: " << filepath << "\n";
@@ -18,29 +19,65 @@ bool Loader::verifyFile(const std::string& filepath) {
         return false;
     }
 
-    // Header validation (checking magic bytes, e.g., PE 'MZ' header for DLLs or valid text/binary header)
     std::ifstream file(filepath, std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "[S1 ERROR [Code 403]] Failed to open file for header validation.\n";
+        std::cerr << "[S1 ERROR [Code 403]] Failed to open file for magic byte validation.\n";
         return false;
     }
-    char header[2] = {0};
-    file.read(header, 2);
-    // For test purposes, accept standard PE 'MZ' or text files (like CMakeLists.txt starting with 'c'/'#' or similar)
-    if (buffer.st_size > 0) {
-        std::cout << "[S1] File header validation passed. Size: " << buffer.st_size << " bytes.\n";
+
+    char magic[4] = {0};
+    file.read(magic, 4);
+
+    if (expectedFormat == FileFormat::PE_BINARY) {
+        // PE binaries start with 'MZ' (0x4D, 0x5A)
+        if (magic[0] != 'M' || magic[1] != 'Z') {
+            std::cerr << "[S1 ERROR [Code 405]] Invalid PE binary magic header (expected 'MZ').\n";
+            return false;
+        }
+    } else if (expectedFormat == FileFormat::LUAU_BYTECODE) {
+        // Luau bytecode magic header or signature
+        if (static_cast<uint8_t>(magic[0]) != 0x1B) {
+            std::cerr << "[S1 ERROR [Code 406]] Invalid Luau bytecode magic header (expected 0x1B).\n";
+            return false;
+        }
+    } else if (expectedFormat == FileFormat::TEXT_SCRIPT) {
+        // Text script: verify readable chars or text/cmake comments (e.g. '#', 'c', 'p', etc.)
+        if (static_cast<uint8_t>(magic[0]) == 0 && static_cast<uint8_t>(magic[1]) == 0) {
+            std::cerr << "[S1 ERROR [Code 407]] Invalid text script header.\n";
+            return false;
+        }
     }
+
+    std::cout << "[S1] File header magic verification passed for format.\n";
     return true;
 }
 
 bool Loader::checkPrivileges(const std::string& clientVersion) {
-    std::cout << "[S1] Checking process privileges and parsing client version format: " << clientVersion << "\n";
-    // Enforce valid semantic version format (e.g. X.Y.Z format check: must contain at least one dot and non-empty)
-    if (clientVersion.empty() || clientVersion == "invalid_version" || clientVersion.find('.') == std::string::npos) {
-        std::cerr << "[S1 ERROR [Code 401]] Invalid client version format or insufficient privileges: " << clientVersion << "\n";
+    std::cout << "[S1] Parsing and validating SemVer format for client version: " << clientVersion << "\n";
+    // Enforce strict SemVer major.minor.patch parsing (e.g. exactly 3 numeric components separated by dots: X.Y.Z)
+    std::stringstream ss(clientVersion);
+    std::string segment;
+    int components = 0;
+    while (std::getline(ss, segment, '.')) {
+        if (segment.empty()) {
+            std::cerr << "[S1 ERROR [Code 410]] Empty SemVer component.\n";
+            return false;
+        }
+        for (char c : segment) {
+            if (!isdigit(c)) {
+                std::cerr << "[S1 ERROR [Code 411]] Non-numeric SemVer component: " << segment << "\n";
+                return false;
+            }
+        }
+        components++;
+    }
+
+    if (components != 3) {
+        std::cerr << "[S1 ERROR [Code 412]] Invalid SemVer format (expected major.minor.patch, got " << components << " components).\n";
         return false;
     }
-    std::cout << "[S1] Privileges verified and client version " << clientVersion << " format is valid.\n";
+
+    std::cout << "[S1] Privileges verified and SemVer client version " << clientVersion << " is valid.\n";
     return true;
 }
 

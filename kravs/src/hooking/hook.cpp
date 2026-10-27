@@ -47,6 +47,10 @@ bool HookManager::unhide() {
 }
 
 bool HookManager::detach() {
+    if (isDetached_) {
+        std::cerr << "[S3 WARNING] HookManager is already detached.\n";
+        return false;
+    }
     std::cout << "[S3 S9] Detaching HookManager from process execution hooks...\n";
     isDetached_ = true;
     return true;
