@@ -11,9 +11,10 @@ public:
     ~Loader() = default;
 
     bool verifyFile(const std::string& filepath);
-    bool checkPrivileges();
+    bool checkPrivileges(const std::string& clientVersion);
     bool prepareBuffer(size_t size);
     const std::vector<uint8_t>& getBuffer() const;
+    std::vector<uint8_t>& getBufferMutable();
 
 private:
     std::vector<uint8_t> stagingBuffer_;

@@ -8,12 +8,21 @@ namespace Kravs {
 class HookManager {
 public:
     HookManager();
-    ~HookManager() = default;
+    ~HookManager();
 
     bool installLuauHooks();
     bool captureThreadCalls();
     bool createTrampolines();
     bool hideMemoryModifications();
+    bool unhook();
+
+    void* getTargetFunction() const;
+    void* getTrampolineAddress() const;
+
+private:
+    void* targetFunctionPtr_;
+    void* trampolineAddressPtr_;
+    bool isInstalled_;
 };
 } // namespace Kravs
 

@@ -5,22 +5,54 @@ namespace Kravs {
 ApiBridge::ApiBridge() = default;
 
 bool ApiBridge::wrapClientFunctions() {
-    std::cout << "[S5] Wrapping internal client functions into safe callables...\n";
+    std::cout << "[S5] Wrapping internal client functions (game, Instance, workspace) into safe Lua/Luau callables...\n";
     return true;
 }
 
-bool ApiBridge::convertTypes() {
-    std::cout << "[S5] Setting up type conversion layers (Numbers, Strings, Tables, Userdata)...\n";
+int ApiBridge::convertTypes(const std::string& inputType, std::string& outputType) {
+    std::cout << "[S5] Converting type representation from '" << inputType << "'...\n";
+    if (inputType.empty()) {
+        std::cerr << "[S5 ERROR] Empty input type provided for conversion.\n";
+        return -1; // Error code
+    }
+    outputType = "lua_" + inputType;
+    std::cout << "[S5] Successfully converted to output type: " << outputType << "\n";
+    return 0; // Success error code
+}
+
+bool ApiBridge::validateArguments(const std::vector<std::string>& args) {
+    std::cout << "[S5] Validating argument list (count: " << args.size() << ")...\n";
+    for (const auto& arg : args) {
+        if (arg == "INVALID") {
+            std::cerr << "[S5 ERROR] Invalid argument detected.\n";
+            return false;
+        }
+    }
     return true;
 }
 
-bool ApiBridge::validateArguments() {
-    std::cout << "[S5] Validating arguments and bounds checking...\n";
+bool ApiBridge::queueAsyncCalls(std::function<void()> task) {
+    if (!task) {
+        std::cerr << "[S5 ERROR] Cannot queue null task.\n";
+        return false;
+    }
+    std::cout << "[S5] Queuing asynchronous call into task queue...\n";
+    asyncTaskQueue_.push(task);
     return true;
 }
 
-bool ApiBridge::queueAsyncCalls() {
-    std::cout << "[S5] Initializing asynchronous call queue and thread management...\n";
+bool ApiBridge::processQueue() {
+    std::cout << "[S5] Processing " << asyncTaskQueue_.size() << " queued asynchronous tasks...\n";
+    while (!asyncTaskQueue_.empty()) {
+        auto task = asyncTaskQueue_.front();
+        asyncTaskQueue_.pop();
+        try {
+            task();
+        } catch (...) {
+            std::cerr << "[S5 ERROR] Exception thrown during async task execution.\n";
+            return false;
+        }
+    }
     return true;
 }
 } // namespace Kravs

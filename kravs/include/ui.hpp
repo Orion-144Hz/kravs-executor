@@ -12,7 +12,11 @@ public:
     bool renderConsole();
     bool logEvent(const std::string& message);
     bool controlExecution(bool start);
-    bool updateStatus();
+    std::string updateStatus() const;
+
+private:
+    bool isRunning_;
+    size_t eventCount_;
 };
 } // namespace Kravs
 
