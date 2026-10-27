@@ -43,7 +43,7 @@ bool Injector::allocateAndWriteMemory(const uint8_t* data, size_t size, void*& a
         return false;
     }
 
-    std::cout << "[S2] Allocating remote memory and writing payload (" << size << " bytes) without const_cast...\n";
+    std::cout << "[S2] Allocating remote memory and writing payload (" << size << " bytes)...\n";
     
     #ifdef _WIN32
     // Windows production code:
@@ -59,7 +59,7 @@ bool Injector::allocateAndWriteMemory(const uint8_t* data, size_t size, void*& a
         std::cerr << "[S2 ERROR] Memory allocation failed.\n";
         return false;
     }
-    // Copy data safely without const_cast violation
+    // Copy data safely using direct pointer assignment
     const uint8_t* src = data;
     uint8_t* dest = static_cast<uint8_t*>(allocatedAddress);
     for (size_t i = 0; i < size; ++i) {
