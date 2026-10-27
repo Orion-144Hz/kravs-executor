@@ -19,11 +19,15 @@ public:
     void* getProcessHandle() const;
     uint32_t getTargetProcessId() const;
 
+    // Test hook for simulating write failure in negative testing
+    void setSimulateWriteFailure(bool simulate);
+
 private:
     uint32_t targetProcessId_;
     void* processHandle_;
     void* allocatedRemoteAddress_;
     size_t allocatedSize_;
+    bool simulateWriteFailure_;
 };
 } // namespace Kravs
 
